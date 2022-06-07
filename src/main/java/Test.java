@@ -7,10 +7,11 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import io.github.bonigarcia.wdm.WebDriverManager;
 
 public class Test {
 	public static WebDriver driver;
-	public static WebElement totype, confirm;
+	public static WebElement totype, confirm, startButton;
 	public static String word;
 
 	public static void login(String gmail, String pwd) {
@@ -20,42 +21,52 @@ public class Test {
 		l.sendKeys(gmail);
 		driver.findElement(By.id("identifierNext")).click();
 	    // Password
-	    new WebDriverWait(driver, Duration.ofSeconds(2));
-	    WebElement p = driver.findElement(By.name("password"));
+	    WebElement p = new WebDriverWait(driver, Duration.ofSeconds(5))
+			.until(ExpectedConditions.visibilityOfElementLocated(By.name("password")));
 	    p.sendKeys(pwd);
 	    driver.findElement(By.id("passwordNext")).click();
-	    new WebDriverWait(driver, Duration.ofSeconds(2));
+        try {
+            Thread.sleep(3000);
+        } catch(Exception e){
+            e.printStackTrace();
+        }
 	}
+
 	public static void main(String[] args) {
-		System.setProperty("webdriver.chrome.driver", "./chromedriver");
+		// System.setProperty("webdriver.chrome.driver", "./chromedriver");
+        WebDriverManager.chromedriver().setup();
 		driver = new ChromeDriver();
-		//login();
-		/*
-		driver.get("https://freelancesage.com/play");
-		// Wait for start button to show up
-		WebElement startButton = new WebDriverWait(driver, Duration.ofSeconds(10))
-				.until(ExpectedConditions.elementToBeClickable(By.id("start-btn")));
-		System.out.println("Button has Appeared!");
-		JavascriptExecutor jse = (JavascriptExecutor) driver;
-		jse.executeScript("arguments[0].click();", startButton);
-		System.out.println("Button has been clicked!");
-		// END
-		// Wait for text to display
-		word = getWord(""); // Get the text store into String variable
-		// Boolean gameOver =
-		// driver.findElement(By.className(".swal2-confirm")).isDisplayed();
-		for (int i = 0;; i++) {
-			if (i >= 1) { // Skip the very first loop
-				word = getWord(word);
-			}
-			System.out.println("The text is: " + word);
-			sendKeys(word, driver.findElement(By.id("quoteInput"))); // Write the word
-			if (driver.findElements(By.className("swal2-confirm")).size() > 0) { // Check if true
-				System.out.println("It is done!");
-				break;
-			}
-		}
-		*/
+		// login();
+        for (int k = 0; k < 10; k++) {
+            if (k == 0) {
+                driver.get("https://freelancesage.com/play");
+            } else {
+                driver.navigate().refresh();
+            }
+            // Wait for start button to show up
+            startButton = new WebDriverWait(driver, Duration.ofSeconds(10))
+                .until(ExpectedConditions.elementToBeClickable(By.id("start-btn")));
+            System.out.println("Button has Appeared!");
+            JavascriptExecutor jse = (JavascriptExecutor) driver;
+            jse.executeScript("arguments[0].click();", startButton);
+            System.out.println("Button has been clicked!");
+            // END
+            // Wait for text to display
+            word = getWord(""); // Get the text store into String variable
+                                // driver.findElement(By.className(".swal2-confirm")).isDisplayed();
+            for (int i = 0;; i++) {
+                if (i >= 1) { // Skip the very first loop
+                    word = getWord(word);
+                }
+                System.out.println("The text is: " + word);
+                sendKeys(word, driver.findElement(By.id("quoteInput"))); // Write the word
+                if (driver.findElements(By.className("swal2-confirm")).size() > 0) { // Check if true
+                    System.out.println("It is done!");
+                    break;
+                }
+            }
+        }
+		
 		exit();
 		
 	}
