@@ -17,22 +17,22 @@ public class Test {
 	public static WebElement totype, confirm, startButton;
 	public static String word;
 
-	public static void login(String gmail, String pwd) {
+	public static void login(Credentials creds) {
 		// Enter mail
 		driver.get("https://freelancesage.com/oauth/google");
 		WebElement l = driver.findElement(By.name("identifier"));
-		l.sendKeys(gmail);
+		l.sendKeys(creds.getEmail());
 		driver.findElement(By.id("identifierNext")).click();
 		// Password
 		WebElement p = new WebDriverWait(driver, Duration.ofSeconds(5))
 				.until(ExpectedConditions.visibilityOfElementLocated(By.name("password")));
-		p.sendKeys(pwd);
+		p.sendKeys(creds.getPwd());
 		driver.findElement(By.id("passwordNext")).click();
-		//driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(3));
 		new WebDriverWait(driver, Duration.ofSeconds(15)).until(ExpectedConditions.urlToBe("https://freelancesage.com/dashboard"));
 	}
-
 	public static void main(String[] args) {
+        Credentials creds = new Credentials(); // Ask user for credentials by constructing class
+        
 		WebDriverManager.chromedriver().setup();
 		/*
 		ChromeOptions opts = new ChromeOptions();
@@ -41,7 +41,7 @@ public class Test {
 		driver = new ChromeDriver(opts);
 		*/
 		driver = new ChromeDriver();
-		login("", "");
+		login(creds);
 		for (int k = 0; k < 50; k++) {
 			if (k == 0) {
 				driver.get("https://freelancesage.com/play");
@@ -69,19 +69,15 @@ public class Test {
 				}
 				System.out.println("The text is: " + word);
 				sendKeys(word, driver.findElement(By.id("quoteInput"))); // Write the word
-				
-				if (!driver.findElements(By.className("swal2-confirm")).isEmpty()) {
-					System.out.println("It is done im at the very last");
-					break;
-				}
+
 			}
 		}
 
 		exit();
-
+        
 	}
 
-	static public String getWord(String dw) {
+	public static String getWord(String dw) {
 		try {
 			if (dw.equals("")) {
 			totype = new WebDriverWait(driver, Duration.ofSeconds(3))
@@ -105,7 +101,7 @@ public class Test {
 
 	}
 
-	static public void sendKeys(String keysToSend, WebElement element) {
+	public static void sendKeys(String keysToSend, WebElement element) {
 		for (char c : keysToSend.toCharArray()) {
 			try {
 				element.sendKeys(Character.toString(c));
@@ -120,7 +116,7 @@ public class Test {
 		}
 	}
 
-	static public void exit() {
+	public static void exit() {
 		driver.close();
 		driver.quit();
 	}
