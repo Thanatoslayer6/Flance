@@ -1,7 +1,8 @@
 import java.time.Duration;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -16,83 +17,94 @@ public class Test {
 
 	public static void login(String gmail, String pwd) {
 		// Enter mail
-		driver.get("https://accounts.google.com/ServiceLogin?elo=1");
+		driver.get("https://freelancesage.com/oauth/google");
 		WebElement l = driver.findElement(By.name("identifier"));
 		l.sendKeys(gmail);
 		driver.findElement(By.id("identifierNext")).click();
-	    // Password
-	    WebElement p = new WebDriverWait(driver, Duration.ofSeconds(5))
-			.until(ExpectedConditions.visibilityOfElementLocated(By.name("password")));
-	    p.sendKeys(pwd);
-	    driver.findElement(By.id("passwordNext")).click();
-        try {
-            Thread.sleep(3000);
-        } catch(Exception e){
-            e.printStackTrace();
-        }
+		// Password
+		WebElement p = new WebDriverWait(driver, Duration.ofSeconds(5))
+				.until(ExpectedConditions.visibilityOfElementLocated(By.name("password")));
+		p.sendKeys(pwd);
+		driver.findElement(By.id("passwordNext")).click();
+		//driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(3));
+		new WebDriverWait(driver, Duration.ofSeconds(15)).until(ExpectedConditions.urlToBe("https://freelancesage.com/dashboard"));
 	}
 
 	public static void main(String[] args) {
-		// System.setProperty("webdriver.chrome.driver", "./chromedriver");
-        WebDriverManager.chromedriver().setup();
+		WebDriverManager.chromedriver().setup();
 		driver = new ChromeDriver();
-		// login();
-        for (int k = 0; k < 10; k++) {
-            if (k == 0) {
-                driver.get("https://freelancesage.com/play");
-            } else {
-                driver.navigate().refresh();
-            }
-            // Wait for start button to show up
-            startButton = new WebDriverWait(driver, Duration.ofSeconds(10))
-                .until(ExpectedConditions.elementToBeClickable(By.id("start-btn")));
-            System.out.println("Button has Appeared!");
-            JavascriptExecutor jse = (JavascriptExecutor) driver;
-            jse.executeScript("arguments[0].click();", startButton);
-            System.out.println("Button has been clicked!");
-            // END
-            // Wait for text to display
-            word = getWord(""); // Get the text store into String variable
-                                // driver.findElement(By.className(".swal2-confirm")).isDisplayed();
-            for (int i = 0;; i++) {
-                if (i >= 1) { // Skip the very first loop
-                    word = getWord(word);
-                }
-                System.out.println("The text is: " + word);
-                sendKeys(word, driver.findElement(By.id("quoteInput"))); // Write the word
-                if (driver.findElements(By.className("swal2-confirm")).size() > 0) { // Check if true
-                    System.out.println("It is done!");
-                    break;
-                }
-            }
-        }
-		
+		login("", "");
+		for (int k = 0; k < 50; k++) {
+			if (k == 0) {
+				driver.get("https://freelancesage.com/play");
+			} else {
+				driver.navigate().refresh();
+			}
+			// Wait for start button to show up
+			startButton = new WebDriverWait(driver, Duration.ofSeconds(10))
+					.until(ExpectedConditions.elementToBeClickable(By.id("start-btn")));
+			System.out.println("Start Button has Appeared!");
+			JavascriptExecutor jse = (JavascriptExecutor) driver;
+			jse.executeScript("arguments[0].click();", startButton);
+			System.out.println("Start Button has been clicked!");
+			// END
+			// Wait for text to display
+			word = getWord(""); // Get the text store into String variable
+
+			for (int i = 0;; i++) {
+				if (!driver.findElements(By.className("swal2-confirm")).isEmpty()) {
+					System.out.println("It is done!");
+					break;
+				}
+				if (i >= 1) {
+					word = getWord(word);
+				}
+				System.out.println("The text is: " + word);
+				sendKeys(word, driver.findElement(By.id("quoteInput"))); // Write the word
+				
+				if (!driver.findElements(By.className("swal2-confirm")).isEmpty()) {
+					System.out.println("It is done im at the very last");
+					break;
+				}
+			}
+		}
+
 		exit();
-		
+
 	}
 
 	static public String getWord(String dw) {
-		if (dw.equals("")) {
-			totype = new WebDriverWait(driver, Duration.ofSeconds(100))
+		try {
+			if (dw.equals("")) {
+			totype = new WebDriverWait(driver, Duration.ofSeconds(3))
 					.until(ExpectedConditions.visibilityOfElementLocated(By.id("quoteDisplay")));
-		} else {
-			// We wait for now
-			WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(100));
-			wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElement(totype, dw)));
+			} else {
+				// We wait for now
+				WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3));
+				wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElement(totype, dw)));
+			}		
+		} catch (TimeoutException ignored) {
+			return "";
 		}
-		// After we wait just grab text again
-		totype = new WebDriverWait(driver, Duration.ofSeconds(5))
-				.until(ExpectedConditions.visibilityOfElementLocated(By.id("quoteDisplay")));
-		return totype.getText();
+		try {
+			// After we wait just grab text again
+			totype = new WebDriverWait(driver, Duration.ofSeconds(3))
+					.until(ExpectedConditions.visibilityOfElementLocated(By.id("quoteDisplay")));
+			return totype.getText();		
+		} catch (TimeoutException ignored) {
+			return "";
+		}
+
 	}
 
 	static public void sendKeys(String keysToSend, WebElement element) {
 		for (char c : keysToSend.toCharArray()) {
-			element.sendKeys(Character.toString(c));
 			try {
-				Thread.sleep(40);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+				element.sendKeys(Character.toString(c));
+				driver.manage().timeouts().implicitlyWait(Duration.ofMillis(30));
+			} catch (NoSuchElementException ignored) {
+				System.out.println("Cannot type anymore so just qutting now...");
+				break;
 			}
 		}
 	}
