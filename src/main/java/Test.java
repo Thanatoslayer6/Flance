@@ -1,11 +1,13 @@
 import java.time.Duration;
 import org.openqa.selenium.By;
+import org.openqa.selenium.ElementNotInteractableException;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+//import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import io.github.bonigarcia.wdm.WebDriverManager;
@@ -32,6 +34,12 @@ public class Test {
 
 	public static void main(String[] args) {
 		WebDriverManager.chromedriver().setup();
+		/*
+		ChromeOptions opts = new ChromeOptions();
+		opts.setHeadless(true);
+		opts.addArguments("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.61 Safari/537.36");
+		driver = new ChromeDriver(opts);
+		*/
 		driver = new ChromeDriver();
 		login("", "");
 		for (int k = 0; k < 50; k++) {
@@ -104,6 +112,9 @@ public class Test {
 				driver.manage().timeouts().implicitlyWait(Duration.ofMillis(30));
 			} catch (NoSuchElementException ignored) {
 				System.out.println("Cannot type anymore so just qutting now...");
+				break;
+			} catch (ElementNotInteractableException ignored) {
+				System.out.println("Cannot interact with element, quitting loop now...");
 				break;
 			}
 		}
