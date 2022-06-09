@@ -1,4 +1,7 @@
+package com.Thanatoslayer6;
 import java.time.Duration;
+import java.util.Collections;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementNotInteractableException;
 import org.openqa.selenium.JavascriptExecutor;
@@ -7,9 +10,10 @@ import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-//import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
 import io.github.bonigarcia.wdm.WebDriverManager;
 
 public class Test {
@@ -34,13 +38,25 @@ public class Test {
         Credentials creds = new Credentials(); // Ask user for credentials by constructing class
         
 		WebDriverManager.chromedriver().setup();
-		/*
-		ChromeOptions opts = new ChromeOptions();
-		opts.setHeadless(true);
-		opts.addArguments("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.61 Safari/537.36");
-		driver = new ChromeDriver(opts);
-		*/
-		driver = new ChromeDriver();
+
+        ChromeOptions options = new ChromeOptions();
+
+        // Fixing 255 Error crashes
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+
+        // Options to trick bot detection
+        // Removing webdriver property
+        options.addArguments("--disable-blink-features=AutomationControlled");
+        options.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
+        options.setExperimentalOption("useAutomationExtension", null);
+
+            // Changing the user agent / browser fingerprint
+		options.addArguments("user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.61 Safari/537.36");
+        // Other
+        options.addArguments("disable-infobars");
+
+		driver = new ChromeDriver(options);
 		login(creds);
 		for (int k = 0; k < 50; k++) {
 			if (k == 0) {
