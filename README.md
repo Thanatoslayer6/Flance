@@ -1,5 +1,4 @@
 # Flance
 
-WIP
-
-add `chromedriver` to project's root
+### Build jar with dependencies
+`mvn clean compile assembly:single`
