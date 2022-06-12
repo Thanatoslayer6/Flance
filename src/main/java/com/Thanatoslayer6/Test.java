@@ -18,10 +18,10 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 
 public class Test {
 	public static WebDriver driver;
-	public static WebElement totype, confirm, startButton;
+	public static WebElement totype, confirm, startButton, points, energy;
 	public static String word;
 
-	public static void login(Credentials creds) {
+	public static void login(CredentialsLogin creds) {
 		// Enter mail
 		driver.get("https://freelancesage.com/oauth/google");
 		WebElement l = driver.findElement(By.name("identifier"));
@@ -35,7 +35,7 @@ public class Test {
 		new WebDriverWait(driver, Duration.ofSeconds(15)).until(ExpectedConditions.urlToBe("https://freelancesage.com/dashboard"));
 	}
 	public static void main(String[] args) {
-        Credentials creds = new Credentials(); // Ask user for credentials by constructing class
+        CredentialsLogin creds = new CredentialsLogin(); // Ask user for credentials by constructing class
         
 		WebDriverManager.chromedriver().setup();
 
@@ -51,39 +51,58 @@ public class Test {
         options.setExperimentalOption("excludeSwitches", Collections.singletonList("enable-automation"));
         options.setExperimentalOption("useAutomationExtension", null);
 
-            // Changing the user agent / browser fingerprint
+        // Changing the user agent / browser fingerprint
 		options.addArguments("user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.61 Safari/537.36");
         // Other
         options.addArguments("disable-infobars");
+        options.addArguments("--headless"); // Try headless
 
 		driver = new ChromeDriver(options);
+        // Login then go to '/play' section
 		login(creds);
-		for (int k = 0; k < 50; k++) {
+		driver.get("https://freelancesage.com/play");
+		// Find energy selector by calling method
+		energy = getEnergyHandle();
+		int energy_int = Integer.parseInt(energy.getText().replaceAll("\\D+", ""));
+		// End
+		for (int k = 0; k < energy_int; k++) {
 			if (k == 0) {
-				driver.get("https://freelancesage.com/play");
+				// Show the amount of energy
+				System.out.println(energy.getText());
+				System.out.println("===== Starting the game now =====");
 			} else {
+				// Refresh the page to play again...
 				driver.navigate().refresh();
+				// Show the amount of energy
+				energy = getEnergyHandle();
+				System.out.println(energy.getText());
+				System.out.println("===== Starting the game now =====");
 			}
 			// Wait for start button to show up
 			startButton = new WebDriverWait(driver, Duration.ofSeconds(10))
 					.until(ExpectedConditions.elementToBeClickable(By.id("start-btn")));
-			System.out.println("Start Button has Appeared!");
 			JavascriptExecutor jse = (JavascriptExecutor) driver;
 			jse.executeScript("arguments[0].click();", startButton);
-			System.out.println("Start Button has been clicked!");
-			// END
 			// Wait for text to display
 			word = getWord(""); // Get the text store into String variable
 
 			for (int i = 0;; i++) {
 				if (!driver.findElements(By.className("swal2-confirm")).isEmpty()) {
-					System.out.println("It is done!");
+                    confirm = new WebDriverWait(driver, Duration.ofSeconds(10))
+                    		.until(ExpectedConditions.elementToBeClickable(By.className("swal2-confirm")));
+                    confirm.click();
+                    points = new WebDriverWait(driver, Duration.ofSeconds(10))
+                    		.until(ExpectedConditions.visibilityOfElementLocated(By.className("total_points")));
+                    System.out.printf("~~~ Game Over! You won %s points ~~~\n", points.getText());
 					break;
 				}
 				if (i >= 1) {
 					word = getWord(word);
 				}
-				System.out.println("The text is: " + word);
+               
+                if ((i % 10) == 0) { // Output every 10th word to the console just to be sure
+				    System.out.printf("[%d] - The text is: %s\n", i, word);
+                }
 				sendKeys(word, driver.findElement(By.id("quoteInput"))); // Write the word
 
 			}
@@ -118,20 +137,23 @@ public class Test {
 	}
 
 	public static void sendKeys(String keysToSend, WebElement element) {
-		for (char c : keysToSend.toCharArray()) {
-			try {
-				element.sendKeys(Character.toString(c));
-				driver.manage().timeouts().implicitlyWait(Duration.ofMillis(30));
-			} catch (NoSuchElementException ignored) {
-				System.out.println("Cannot type anymore so just qutting now...");
-				break;
-			} catch (ElementNotInteractableException ignored) {
-				System.out.println("Cannot interact with element, quitting loop now...");
-				break;
-			}
+		//for (char c : keysToSend.toCharArray()) {
+		try {
+			element.sendKeys(keysToSend);
+			//driver.manage().timeouts().implicitlyWait(Duration.ofMillis(30));
+		} catch (NoSuchElementException ignored) {
+			System.out.println("Cannot type anymore so just qutting now...");
+			//break;
+		} catch (ElementNotInteractableException ignored) {
+			System.out.println("Cannot interact with element, quitting loop now...");
+			//break;
 		}
+		//}
 	}
-
+	public static WebElement getEnergyHandle() {
+		return new WebDriverWait(driver, Duration.ofSeconds(10))
+			.until(ExpectedConditions.visibilityOfElementLocated(By.className("energy-left")));
+	}
 	public static void exit() {
 		driver.close();
 		driver.quit();

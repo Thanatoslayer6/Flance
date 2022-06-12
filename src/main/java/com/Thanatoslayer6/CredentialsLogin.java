@@ -1,7 +1,7 @@
 package com.Thanatoslayer6;
 import java.util.Scanner;
 
-public class Credentials {
+public class CredentialsLogin {
     private static String email, pwd;
     public String getEmail() {    
         return email;
@@ -10,13 +10,13 @@ public class Credentials {
         return pwd;
     }
     public static void setEmail(String email) {
-        Credentials.email = email;
+        CredentialsLogin.email = email;
     }
     public static void setPwd(String pwd) {    
-        Credentials.pwd = pwd;
+        CredentialsLogin.pwd = pwd;
     }
 
-    Credentials() {
+    CredentialsLogin() {
     	Scanner getm = new Scanner(System.in);
     	System.out.print("Enter your Google Email: ");
         setEmail(getm.nextLine());
