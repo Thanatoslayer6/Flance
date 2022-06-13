@@ -8,6 +8,7 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -43,8 +44,9 @@ public class Test {
 
         // Fixing 255 Error crashes
         options.addArguments("--no-sandbox");
+        options.addArguments("--disable-gpu");
         options.addArguments("--disable-dev-shm-usage");
-
+        options.addArguments("--window-size=720,1280");
         // Options to trick bot detection
         // Removing webdriver property
         options.addArguments("--disable-blink-features=AutomationControlled");
@@ -55,7 +57,7 @@ public class Test {
 		options.addArguments("user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.61 Safari/537.36");
         // Other
         options.addArguments("disable-infobars");
-        options.addArguments("--headless"); // Try headless
+        //options.addArguments("--headless"); // Try headless
 
 		driver = new ChromeDriver(options);
         // Login then go to '/play' section
@@ -115,16 +117,19 @@ public class Test {
 	public static String getWord(String dw) {
 		try {
 			if (dw.equals("")) {
-			totype = new WebDriverWait(driver, Duration.ofSeconds(3))
-					.until(ExpectedConditions.visibilityOfElementLocated(By.id("quoteDisplay")));
+			    totype = new WebDriverWait(driver, Duration.ofSeconds(3))
+                    .until(ExpectedConditions.visibilityOfElementLocated(By.id("quoteDisplay")));
 			} else {
 				// We wait for now
-				WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3));
-				wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElement(totype, dw)));
+				new WebDriverWait(driver, Duration.ofSeconds(10))
+					.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElement(totype, dw)));
 			}		
 		} catch (TimeoutException ignored) {
 			return "";
-		}
+        } catch (WebDriverException ignored) {
+            return "";
+        }
+
 		try {
 			// After we wait just grab text again
 			totype = new WebDriverWait(driver, Duration.ofSeconds(3))
@@ -132,7 +137,9 @@ public class Test {
 			return totype.getText();		
 		} catch (TimeoutException ignored) {
 			return "";
-		}
+        } catch (WebDriverException ignored) {
+            return "";
+        }
 
 	}
 
@@ -147,7 +154,9 @@ public class Test {
 		} catch (ElementNotInteractableException ignored) {
 			System.out.println("Cannot interact with element, quitting loop now...");
 			//break;
-		}
+        } catch (WebDriverException ignored) {
+            System.out.println("Webdriver exception....");
+        }
 		//}
 	}
 	public static WebElement getEnergyHandle() {
